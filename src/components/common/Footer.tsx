@@ -1,22 +1,31 @@
 export default function Footer() {
   return (
-    <footer className="relative z-10 py-16 mt-20 border-t border-[#8B6F47]/10 text-center">
-      <div className="max-w-xl mx-auto px-8">
-        <h2 className="font-serif italic text-xl mb-4 text-[#2B2A28]">BookNest</h2>
-        <p className="text-[10px] uppercase tracking-[0.4em] text-[#8B6F47] mb-8">
-          Established in the year 2025
-        </p>
+    <footer className="relative z-10 py-8 mt-10 border-t border-[#8B6F47]/10 bg-[#FDFCF8]">
+      <div className="max-w-7xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-6">
         
-        <div className="flex justify-center gap-8 mb-8 text-[11px] font-serif italic text-[#6B6B6B]">
-          <span className="cursor-pointer hover:text-[#2B2A28]">Terms</span>
-          <span className="cursor-pointer hover:text-[#2B2A28]">Privacy</span>
-          <span className="cursor-pointer hover:text-[#2B2A28]">Contact</span>
+        {/* LEFT: Branding */}
+        <div className="text-center md:text-left">
+          <h2 className="font-serif italic text-lg leading-none text-[#2B2A28]">BookNest</h2>
+          <p className="text-[8px] uppercase tracking-[0.3em] text-[#8B6F47] mt-1">
+            Est. 2025
+          </p>
         </div>
 
-        <p className="text-[10px] text-[#A0A0A0] font-serif italic">
-          © {new Date().getFullYear()} — All stories belong to their respective authors. 
-          <br /> Curated with patience and ink.
-        </p>
+        {/* CENTER: Copyright/Note (Hidden on mobile or kept very small) */}
+        <div className="hidden lg:block text-center">
+          <p className="text-[9px] text-[#A0A0A0] font-serif italic tracking-wide">
+            Curated with patience and ink. © {new Date().getFullYear()}
+          </p>
+        </div>
+
+        {/* RIGHT: Links */}
+        <div className="flex items-center gap-6 text-[10px] uppercase tracking-[0.2em] font-medium text-[#6B6B6B]">
+          <span className="cursor-pointer hover:text-[#2B2A28] transition-colors">Terms</span>
+          <span className="cursor-pointer hover:text-[#2B2A28] transition-colors">Privacy</span>
+          <span className="h-3 w-px bg-[#8B6F47]/20" /> {/* Vertical Divider */}
+          <span className="cursor-pointer hover:text-[#2B2A28] transition-colors">Contact</span>
+        </div>
+
       </div>
     </footer>
   );

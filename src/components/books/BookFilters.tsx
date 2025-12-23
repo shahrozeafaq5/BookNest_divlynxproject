@@ -18,12 +18,12 @@ export default function BookFilters() {
   const hasActiveFilters =
     Boolean(searchParams.get("q")) || Boolean(searchParams.get("category"));
 
-  // 🔁 Sync input on back/forward nav
+  // 🔁 Sync input on back/forward navigation
   useEffect(() => {
     setSearch(urlQuery);
   }, [urlQuery]);
 
-  // ⏱ Debounced search
+  // 🔍 Debounced search (NO SCROLL JUMP)
   useEffect(() => {
     const timeout = setTimeout(() => {
       const params = new URLSearchParams(searchParams.toString());
@@ -34,23 +34,23 @@ export default function BookFilters() {
         params.delete("q");
       }
 
-      router.push(`/books?${params.toString()}`);
+      router.push(`/books?${params.toString()}`, { scroll: false });
     }, 400);
 
     return () => clearTimeout(timeout);
   }, [search]);
 
-  // 🏷 Category handler
+  // 🏷 Category handler (NO SCROLL JUMP)
   function handleCategory(category: string) {
     const params = new URLSearchParams(searchParams.toString());
 
     if (category === "All") {
       params.delete("category");
     } else {
-      params.set("category", category);
+      params.set("category", category.toLowerCase());
     }
 
-    router.push(`/books?${params.toString()}`);
+    router.push(`/books?${params.toString()}`, { scroll: false });
   }
 
   return (
@@ -68,7 +68,7 @@ export default function BookFilters() {
       {/* 🧹 CLEAR FILTERS */}
       {hasActiveFilters && (
         <button
-          onClick={() => router.push("/books")}
+          onClick={() => router.push("/books", { scroll: false })}
           className="mx-auto mb-12 block text-[10px] uppercase tracking-[0.3em] font-bold text-[#8B6F47]/60 hover:text-[#2B2A28] transition-colors"
         >
           Clear filters
@@ -79,7 +79,7 @@ export default function BookFilters() {
       <div className="pb-6 border-b border-[#8B6F47]/20">
         <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-6">
           {CATEGORIES.map((cat) => {
-            const isActive = currentCategory === cat;
+            const isActive = currentCategory === cat.toLowerCase() || currentCategory === cat;
 
             return (
               <button

@@ -1,10 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function AddToCart({ bookId }: { bookId: string }) {
   const [loading, setLoading] = useState(false);
   const [added, setAdded] = useState(false);
+  const [exists, setExists] = useState(false);
+
+  // 🔍 Check if book already in cart
+  useEffect(() => {
+    let mounted = true;
+
+    async function checkCart() {
+      try {
+        const res = await fetch(
+          `/api/cart/contains?bookId=${bookId}`
+        );
+        const data = await res.json();
+
+        if (mounted && data.exists) {
+          setExists(true);
+        }
+      } catch {
+        // silently ignore
+      }
+    }
+
+    checkCart();
+
+    return () => {
+      mounted = false;
+    };
+  }, [bookId]);
 
   async function handleAdd() {
     try {
@@ -12,13 +39,8 @@ export default function AddToCart({ bookId }: { bookId: string }) {
 
       const res = await fetch("/api/cart", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          bookId,
-          quantity: 1,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookId, quantity: 1 }),
       });
 
       if (!res.ok) {
@@ -26,8 +48,8 @@ export default function AddToCart({ bookId }: { bookId: string }) {
       }
 
       setAdded(true);
+      setExists(true);
 
-      // ✅ SAFE browser-only event
       window.dispatchEvent(new Event("cart-updated"));
     } catch (err) {
       console.error(err);
@@ -42,12 +64,35 @@ export default function AddToCart({ bookId }: { bookId: string }) {
     <button
       type="button"
       onClick={handleAdd}
-      disabled={loading}
-      className="w-full px-10 py-5 text-[11px] font-bold uppercase tracking-[0.35em]
-                 transition-all duration-300
-                 disabled:opacity-60 disabled:cursor-not-allowed"
+      disabled={loading || exists}
+      className="
+        w-full
+        px-12
+        py-5
+        border
+        border-[#2B2A28]
+        text-[11px]
+        font-bold
+        uppercase
+        tracking-[0.35em]
+        transition-all
+        duration-300
+
+        bg-[#2B2A28]
+        text-[#FDFCF8]
+
+        hover:bg-[#8B6F47]
+        hover:border-[#8B6F47]
+
+        disabled:bg-[#EAE7E0]
+        disabled:text-[#8B6F47]
+        disabled:border-[#8B6F47]/30
+        disabled:cursor-not-allowed
+      "
     >
-      {loading
+      {exists
+        ? "Already in Collection"
+        : loading
         ? "Archiving…"
         : added
         ? "Added to Collection"
