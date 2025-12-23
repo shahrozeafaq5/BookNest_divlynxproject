@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 export default function AddToCart({ bookId }: { bookId: string }) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-
+window.dispatchEvent(new Event("cart-updated"));
   async function handleAdd() {
     setLoading(true);
     try {
