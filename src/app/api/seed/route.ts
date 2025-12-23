@@ -2,44 +2,125 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Book from "@/models/Book";
 
-const SAMPLE_BOOKS = [
-  {
-    title: "The Midnight Library",
-    author: "Matt Haig",
-    price: 24.99,
-    image: "https://covers.openlibrary.org/b/id/10313322-L.jpg",
-    description: "Between life and death there is a library, and within that library, the shelves go on forever."
-  },
-  {
-    title: "Atomic Habits",
-    author: "James Clear",
-    price: 18.50,
-    image: "https://covers.openlibrary.org/b/id/12885407-L.jpg",
-    description: "A revolutionary system to get 1 percent better every day."
-  },
-  {
-    title: "Project Hail Mary",
-    author: "Andy Weir",
-    price: 29.99,
-    image: "https://covers.openlibrary.org/b/id/10631671-L.jpg",
-    description: "A lone astronaut must save the earth from an interstellar threat."
-  },
-  {
-    title: "Dune",
-    author: "Frank Herbert",
-    price: 15.99,
-    image: "https://covers.openlibrary.org/b/id/11149419-L.jpg",
-    description: "The epic masterpiece of science fiction and political intrigue."
-  }
-];
-
 export async function GET() {
   try {
+    // 1. Establish connection to the Archive
     await connectDB();
-    await Book.deleteMany({}); 
-    await Book.insertMany(SAMPLE_BOOKS);
-    return NextResponse.json({ message: "Archive updated with stable imagery." });
+    console.log("❧ Archive Connection: Active");
+
+    // 2. Clear existing books (Optional but recommended for a clean reset)
+    await Book.deleteMany({});
+    console.log("🧹 Previous folios purged from the shelves.");
+
+    // 3. The New Collection (Your specific list)
+    const books = [
+      {
+        title: "Meditations",
+        author: "Marcus Aurelius",
+        category: "philosophy",
+        price: 18,
+        stock: 12,
+        image: "https://covers.openlibrary.org/b/id/8231856-L.jpg",
+        description: "A timeless collection of Stoic philosophy written as personal reflections by the Roman emperor.",
+      },
+      {
+        title: "Thus Spoke Zarathustra",
+        author: "Friedrich Nietzsche",
+        category: "philosophy",
+        price: 21,
+        stock: 8,
+        image: "https://covers.openlibrary.org/b/id/11153262-L.jpg",
+        description: "A philosophical novel exploring ideas of individuality, morality, and the Übermensch.",
+      },
+      {
+        title: "The Odyssey",
+        author: "Homer",
+        category: "poetry",
+        price: 20,
+        stock: 10,
+        image: "https://covers.openlibrary.org/b/id/8231996-L.jpg",
+        description: "An epic poem chronicling Odysseus’s long journey home after the Trojan War.",
+      },
+      {
+        title: "Leaves of Grass",
+        author: "Walt Whitman",
+        category: "poetry",
+        price: 16,
+        stock: 7,
+        image: "https://covers.openlibrary.org/b/id/8231852-L.jpg",
+        description: "A groundbreaking collection of poems celebrating individuality, nature, and humanity.",
+      },
+      {
+        title: "Sapiens",
+        author: "Yuval Noah Harari",
+        category: "history",
+        price: 26,
+        stock: 14,
+        image: "https://covers.openlibrary.org/b/id/8228691-L.jpg",
+        description: "A brief history of humankind, exploring how biology and history shaped modern society.",
+      },
+      {
+        title: "Guns, Germs, and Steel",
+        author: "Jared Diamond",
+        category: "history",
+        price: 24,
+        stock: 9,
+        image: "https://covers.openlibrary.org/b/id/8235092-L.jpg",
+        description: "An analysis of how geography and environment shaped the modern world.",
+      },
+      {
+        title: "1984",
+        author: "George Orwell",
+        category: "fiction",
+        price: 15,
+        stock: 20,
+        image: "https://covers.openlibrary.org/b/id/7222246-L.jpg",
+        description: "A dystopian novel exploring surveillance, authoritarianism, and loss of freedom.",
+      },
+      {
+        title: "Dune",
+        author: "Frank Herbert",
+        category: "fiction",
+        price: 22,
+        stock: 18,
+        image: "https://covers.openlibrary.org/b/id/8101350-L.jpg",
+        description: "A science fiction epic about politics, religion, and power on the desert planet Arrakis.",
+      },
+      {
+        title: "A Room of One’s Own",
+        author: "Virginia Woolf",
+        category: "essays",
+        price: 14,
+        stock: 6,
+        image: "https://covers.openlibrary.org/b/id/8231881-L.jpg",
+        description: "An extended essay examining women’s role in literary history and creative freedom.",
+      },
+      {
+        title: "Self-Reliance and Other Essays",
+        author: "Ralph Waldo Emerson",
+        category: "essays",
+        price: 17,
+        stock: 11,
+        image: "https://covers.openlibrary.org/b/id/8235089-L.jpg",
+        description: "A collection of essays promoting individualism, intuition, and self-trust.",
+      },
+    ];
+
+    // 4. Populate the Database
+    await Book.insertMany(books);
+
+    return NextResponse.json({ 
+      success: true, 
+      message: "The Great Archive has been successfully restored.",
+      count: books.length 
+    }, { status: 200 });
+
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("❌ Archival Failure:", error.message);
+    return NextResponse.json({ 
+      success: false, 
+      error: "Archival Process Failed",
+      details: error.message 
+    }, { status: 500 });
   }
 }

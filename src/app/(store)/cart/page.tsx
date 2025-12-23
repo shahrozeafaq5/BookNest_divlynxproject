@@ -5,9 +5,11 @@ import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/auth";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import CartItemsClient from "@/components/cart/CartItemsClient";
 
 async function getCart() {
   await connectDB();
+
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
@@ -16,25 +18,33 @@ async function getCart() {
   const payload = await verifyToken(token);
   if (!payload) return null;
 
-  return await Cart.findOne({ user: payload.id })
+  const cart = await Cart.findOne({ user: payload.id })
     .populate("items.book")
     .lean();
+
+  if (!cart) return null;
+
+  // ✅ MANUAL SERIALIZATION (CRITICAL FIX)
+  const serializedItems = cart.items.map((item: any) => ({
+    quantity: item.quantity,
+    book: {
+      _id: item.book._id.toString(),
+      title: item.book.title,
+      price: item.book.price,
+      image: item.book.image || "",
+    },
+  }));
+
+  return serializedItems;
 }
 
 export default async function CartPage() {
-  const cart = await getCart();
+  const items = await getCart();
 
   // 🔐 Protect route
-  if (!cart) {
+  if (!items) {
     redirect("/login");
   }
-
-  const items = cart.items || [];
-
-  const total = items.reduce((acc: number, item: any) => {
-    const price = item.book?.price || 0;
-    return acc + price * item.quantity;
-  }, 0);
 
   return (
     <div className="max-w-6xl mx-auto min-h-screen">
@@ -75,127 +85,8 @@ export default async function CartPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid lg:grid-cols-12 gap-16 items-start">
-
-          {/* ─── ITEMS ─── */}
-          <div className="lg:col-span-8 space-y-10">
-            {items.map((item: any, index: number) => {
-              const key =
-                item._id?.toString() ||
-                item.book?._id?.toString() ||
-                `cart-item-${index}`;
-
-              return (
-                <div
-                  key={key}
-                  className="group relative flex items-center justify-between pb-10 border-b border-[#8B6F47]/10 last:border-0"
-                >
-                  <div className="flex items-center gap-8">
-                    {/* Thumbnail */}
-                    <div className="w-20 h-28 bg-[#EAE7E0] border border-[#8B6F47]/10 flex items-center justify-center shadow-sm relative overflow-hidden">
-                      {item.book?.image ? (
-                        <img
-                          src={item.book.image}
-                          alt={item.book.title}
-                          className="w-full h-full object-cover opacity-80 grayscale group-hover:grayscale-0 transition-all duration-700"
-                        />
-                      ) : (
-                        <span className="font-serif italic text-[#8B6F47]/40">
-                          B
-                        </span>
-                      )}
-
-                      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/natural-paper.png')] opacity-20 pointer-events-none" />
-                    </div>
-
-                    {/* Info */}
-                    <div>
-                      <h3 className="font-serif italic text-2xl text-[#2B2A28] mb-2 group-hover:text-[#8B6F47] transition-colors">
-                        {item.book?.title || "Folio Unavailable"}
-                      </h3>
-
-                      <div className="flex items-center gap-4 text-[10px] font-bold text-[#8B6F47] uppercase tracking-[0.2em]">
-                        <span>Qty: {item.quantity}</span>
-                        <span className="opacity-30">|</span>
-                        <span>
-                          Ref:{" "}
-                          {item.book?._id
-                            ? item.book._id.toString().slice(-4)
-                            : "N/A"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Price */}
-                  <div className="text-right">
-                    <p className="font-serif italic text-2xl text-[#2B2A28]">
-                      $
-                      {(
-                        (item.book?.price || 0) * item.quantity
-                      ).toFixed(2)}
-                    </p>
-
-                    <button className="text-[9px] uppercase tracking-[0.2em] text-red-800/40 hover:text-red-800 transition-colors mt-2 font-bold">
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* ─── SUMMARY ─── */}
-          <aside className="lg:col-span-4">
-            <div className="bg-[#8B6F47]/5 p-10 border border-[#8B6F47]/10 rounded-sm sticky top-40">
-              <h2 className="font-serif italic text-2xl mb-8 text-[#2B2A28] border-b border-[#8B6F47]/20 pb-4">
-                Order Ledger
-              </h2>
-
-              <div className="space-y-4 mb-10">
-                <div className="flex justify-between text-[11px] uppercase tracking-[0.2em] font-bold text-[#8B6F47]">
-                  <span>Subtotal</span>
-                  <span className="text-[#2B2A28]">
-                    ${total.toFixed(2)}
-                  </span>
-                </div>
-
-                <div className="flex justify-between text-[11px] uppercase tracking-[0.2em] font-bold text-[#8B6F47]">
-                  <span>Shipping</span>
-                  <span className="italic font-serif normal-case lowercase text-sm">
-                    complimentary
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex justify-between items-end mb-10">
-                <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-[#8B6F47]">
-                  Total Value
-                </span>
-                <span className="text-4xl font-serif italic text-[#2B2A28] tracking-tighter leading-none">
-                  ${total.toFixed(2)}
-                </span>
-              </div>
-
-              <Link href="/checkout" className="block w-full group/btn">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-[#8B6F47]/20 translate-x-1 translate-y-1 group-hover/btn:translate-x-0 group-hover/btn:translate-y-0 transition-transform" />
-
-                  <button
-                    type="button"
-                    className="relative w-full py-5 bg-[#2B2A28] text-[#FDFCF8] text-[11px] font-bold uppercase tracking-[0.3em] hover:bg-[#8B6F47] transition-all"
-                  >
-                    Finalize Acquisition
-                  </button>
-                </div>
-              </Link>
-
-              <p className="text-center text-[9px] text-[#A0A0A0] mt-6 font-serif italic uppercase tracking-[0.2em]">
-                ❦ Secure Archive Processing ❦
-              </p>
-            </div>
-          </aside>
-        </div>
+        // ✅ NOW SAFE: plain objects only
+        <CartItemsClient initialItems={items} />
       )}
     </div>
   );
