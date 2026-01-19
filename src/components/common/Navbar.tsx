@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCartCount } from "@/hooks/useCartCount";
 
 export default function Navbar() {
@@ -10,6 +10,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
+  const pathname = usePathname();
 
   // Fetch logged-in user
   useEffect(() => {
@@ -17,7 +18,7 @@ export default function Navbar() {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => setUser(data?.user || null))
       .catch(() => setUser(null));
-  }, []);
+  }, [pathname]);
 
   const logout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });

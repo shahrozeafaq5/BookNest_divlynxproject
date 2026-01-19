@@ -8,6 +8,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "covers.openlibrary.org" },
       { protocol: "https", hostname: "m.media-amazon.com" },
       { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "http", hostname: "googleusercontent.com" },
+      { protocol: "https", hostname: "googleusercontent.com" },
     ],
   },
 };
