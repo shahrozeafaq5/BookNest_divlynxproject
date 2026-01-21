@@ -96,9 +96,6 @@ export default function Navbar() {
       {open && (
         <div className="md:hidden border-t border-[#8B6F47]/10 bg-[#FDFCF8] px-6 py-8 space-y-6 shadow-xl">
           <MobileLink href="/books" onClick={() => setOpen(false)}>
-            Archive
-          </MobileLink>
-          <MobileLink href="/books" onClick={() => setOpen(false)}>
             Books
           </MobileLink>
           <MobileLink href="/about" onClick={() => setOpen(false)}>

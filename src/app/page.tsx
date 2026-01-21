@@ -111,13 +111,13 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="flex flex-wrap justify-center lg:justify-end gap-1">
+          <div className="flex flex-wrap items-end justify-center lg:justify-end gap-2 sm:gap-1">
             {[
-              { title: "Philosophy", h: "h-80" },
-              { title: "Poetry", h: "h-64" },
-              { title: "History", h: "h-96" },
-              { title: "Fiction", h: "h-72" },
-              { title: "Art", h: "h-80" },
+              { title: "Philosophy", h: "h-40 sm:h-56 md:h-72 lg:h-80" },
+              { title: "Poetry", h: "h-32 sm:h-48 md:h-56 lg:h-64" },
+              { title: "History", h: "h-48 sm:h-64 md:h-80 lg:h-96" },
+              { title: "Fiction", h: "h-36 sm:h-52 md:h-64 lg:h-72" },
+              { title: "Art", h: "h-40 sm:h-56 md:h-72 lg:h-80" },
             ].map((book, i) => (
               <motion.div
                 key={i}
@@ -125,10 +125,10 @@ export default function HomePage() {
                 initial={{ opacity: 0, y: 50 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1, duration: 1 }}
-                className={`${book.h} w-16 bg-[#2B2A28] rounded-t-sm shadow-2xl relative group overflow-hidden`}
+                className={`${book.h} w-10 sm:w-12 md:w-14 lg:w-16 bg-[#2B2A28] rounded-t-sm shadow-2xl relative group overflow-hidden`}
               >
                 <div className="absolute inset-0 flex items-center justify-center p-2 rotate-180 [writing-mode:vertical-lr]">
-                  <span className="text-[9px] text-[#FDFCF8]/40 uppercase tracking-[0.4em] font-medium group-hover:text-white transition-colors">
+                  <span className="text-[8px] sm:text-[9px] text-[#FDFCF8]/40 uppercase tracking-[0.4em] font-medium group-hover:text-white transition-colors">
                     {book.title}
                   </span>
                 </div>
