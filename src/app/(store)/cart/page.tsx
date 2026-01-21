@@ -1,34 +1,36 @@
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 import { connectDB } from "@/lib/db";
 import Cart from "@/models/Cart";
 import "@/models/Book";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/auth.token";
+import { Model } from "mongoose"; // 1. Added Model import
 
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import CartItemsClient from "@/components/cart/CartItemsClient";
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-
 
 async function getCart() {
   try {
-    const conn = await connectDB();
-    if (!conn) return { items: [], isAuthed: true };
-
+    await connectDB();
+    
+    // In Next.js 15, cookies() must be awaited
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
     if (!token) return { items: null, isAuthed: false };
 
     const payload = await verifyToken(token);
-    if (!payload) return { items: null, isAuthed: false };
+    if (!payload || !payload.id) return { items: null, isAuthed: false };
 
-    const cart = await Cart.findOne({ user: payload.id })
+    // 2. Cast Cart to Model<any> to fix the "user does not exist" TS error
+    const cart = await (Cart as Model<any>).findOne({ user: payload.id })
       .populate("items.book")
       .lean();
 
-    if (!cart) return { items: [], isAuthed: true };
+    if (!cart || !cart.items) return { items: [], isAuthed: true };
 
     // Manual serialization for client props.
     const serializedItems = cart.items
@@ -99,7 +101,6 @@ export default async function CartPage() {
           </Link>
         </div>
       ) : (
-        // ✅ NOW SAFE: plain objects only
         <CartItemsClient initialItems={safeItems} />
       )}
     </div>
