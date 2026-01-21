@@ -1,16 +1,25 @@
 import Link from "next/link";
 import AdminBooksTable from "@/components/admin/AdminBooksTable";
 import { connectDB } from "@/lib/db";
-import Book from "@/models/Book";
-export const runtime = "nodejs";
+import Book, { IBook } from "@/models/Book";
+import { Model } from "mongoose";
 
+export const runtime = "nodejs";
+// This prevents the "server-side exception" during Vercel builds
+export const dynamic = "force-dynamic";
 
 async function getBooks() {
   try {
-    const conn = await connectDB();
-    if (!conn) return [];
+    await connectDB();
 
-    const rawBooks = await Book.find({}).sort({ createdAt: -1 }).lean();
+    // Use type casting to fix the "Argument of type '{}' is not assignable" error
+    const rawBooks = await (Book as Model<IBook>)
+      .find({})
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Serialize MongoDB data (converts ObjectIds and Dates to strings)
+    // to prevent "Plain Object" errors in Client Components
     return JSON.parse(JSON.stringify(rawBooks));
   } catch (error) {
     console.error("AdminBooks SSR error:", error);
@@ -42,7 +51,7 @@ export default async function AdminBooksPage() {
         </Link>
       </div>
 
-      {/* ─── TABLE ─── */}
+      {/* ─── TABLE AREA ─── */}
       <div className="bg-[#FDFCF8] border border-[#8B6F47]/10 rounded-sm">
         {books.length === 0 ? (
           <div className="py-32 text-center border border-dashed border-[#8B6F47]/20 m-4">
