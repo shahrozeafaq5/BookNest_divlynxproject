@@ -4,7 +4,12 @@ import AdminBooksTable from "@/components/admin/AdminBooksTable";
 async function getBooks() {
   try {
     // ✅ RELATIVE fetch — works correctly in Vercel SSR
-    const res = await fetch("/api/books", {
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      process.env.APP_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
+    const res = await fetch(`${baseUrl}/api/books`, {
       cache: "no-store",
     });
 
