@@ -5,6 +5,11 @@ import { verifyToken } from "@/lib/auth.token";
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // ✅ Always allow API routes
+  if (pathname.startsWith("/api")) {
+    return NextResponse.next();
+  }
+
   // Skip Next.js internals & static assets
   if (
     pathname.startsWith("/_next") ||
@@ -21,8 +26,7 @@ export async function proxy(req: NextRequest) {
     pathname === "/register" ||
     pathname === "/about" ||
     pathname === "/order-success" ||
-    pathname.startsWith("/books") ||
-    pathname.startsWith("/api/public");
+    pathname.startsWith("/books");
 
   if (isPublicRoute) {
     return NextResponse.next();
@@ -41,7 +45,7 @@ export async function proxy(req: NextRequest) {
       return NextResponse.redirect(new URL("/login", req.url));
     }
 
-    // 🔒 Admin-only protection
+    // 🔒 Admin-only pages
     if (pathname.startsWith("/admin") && payload.role !== "admin") {
       return NextResponse.redirect(new URL("/books", req.url));
     }

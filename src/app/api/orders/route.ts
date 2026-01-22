@@ -37,27 +37,47 @@ export async function POST(req: NextRequest) {
     }
 
     const payload = await verifyToken(token);
-    // 3. Check for payload.id specifically
-    if (!payload || !payload.id) {
+    if (!payload?.id) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
     /* ─── FETCH CART ─── */
-    // 4. FIX: Cast Cart to Model<any> to resolve the TypeScript 'user' error
-    const cart = await (Cart as Model<any>).findOne({ user: payload.id })
-      .populate({ path: "items.book", model: Book }) // Ensure Book model is registered
+    const cart = await (Cart as Model<any>)
+      .findOne({ user: payload.id })
+      .populate({ path: "items.book", model: Book })
       .lean();
 
-    if (!cart || !cart.items || cart.items.length === 0) {
+    if (!cart || !cart.items?.length) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
     }
 
-    const items = cart.items as PopulatedCartItem[];
+    /* ─── FILTER INVALID ITEMS ─── */
+    const validItems = cart.items.filter(
+      (item: any) => item.book && item.book._id
+    );
 
-    /* ─── VALIDATE & CALCULATE ─── */
+    if (validItems.length === 0) {
+      return NextResponse.json(
+        { error: "Cart contains invalid items. Please re-add products." },
+        { status: 400 }
+      );
+    }
+
+    /* ─── SELF-HEAL CART (IMPORTANT) ─── */
+    if (validItems.length !== cart.items.length) {
+      await (Cart as Model<any>).updateOne(
+        { user: payload.id },
+        { $set: { items: validItems.map(i => ({
+          book: i.book._id,
+          quantity: i.quantity
+        }))}}
+      );
+    }
+
+    /* ─── VALIDATE STOCK & CALCULATE ─── */
     let totalPrice = 0;
-    for (const item of items) {
-      if (!item.book) continue;
+
+    for (const item of validItems) {
       if (item.book.stock < item.quantity) {
         return NextResponse.json(
           { error: `Insufficient stock for ${item.book.title}` },
@@ -70,7 +90,7 @@ export async function POST(req: NextRequest) {
     /* ─── CREATE ORDER ─── */
     const order = await (Order as Model<any>).create({
       user: payload.id,
-      items: items.map((item) => ({
+      items: validItems.map((item) => ({
         book: item.book._id,
         quantity: item.quantity,
         price: item.book.price,
@@ -80,12 +100,13 @@ export async function POST(req: NextRequest) {
     });
 
     /* ─── UPDATE STOCK ─── */
-    const stockUpdates = items.map((item) =>
-      (Book as Model<any>).findByIdAndUpdate(item.book._id, {
-        $inc: { stock: -item.quantity },
-      })
+    await Promise.all(
+      validItems.map((item) =>
+        (Book as Model<any>).findByIdAndUpdate(item.book._id, {
+          $inc: { stock: -item.quantity },
+        })
+      )
     );
-    await Promise.all(stockUpdates);
 
     /* ─── CLEAR CART ─── */
     await (Cart as Model<any>).updateOne(
