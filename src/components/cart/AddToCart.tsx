@@ -9,36 +9,26 @@ export default function AddToCart({ bookId }: { bookId: string }) {
   const [exists, setExists] = useState(false);
   const router = useRouter();
 
-  // 🔍 Check if book already in cart
   useEffect(() => {
     let mounted = true;
-
     async function checkCart() {
       try {
         const res = await fetch(`/api/cart/contains?bookId=${bookId}`, {
           credentials: "include",
         });
         const data = await res.json();
-
         if (mounted && data.exists) {
           setExists(true);
         }
-      } catch {
-        // silently ignore
-      }
+      } catch { /* ignore */ }
     }
-
     checkCart();
-
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, [bookId]);
 
   async function handleAdd() {
     try {
       setLoading(true);
-
       const res = await fetch("/api/cart", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -58,7 +48,6 @@ export default function AddToCart({ bookId }: { bookId: string }) {
 
       setAdded(true);
       setExists(true);
-
       window.dispatchEvent(new Event("cart-updated"));
     } catch (err) {
       console.error(err);
@@ -76,14 +65,18 @@ export default function AddToCart({ bookId }: { bookId: string }) {
       disabled={loading || exists}
       className="
         w-full
-        px-12
-        py-5
+        /* Reduced padding for mobile, larger for desktop */
+        px-2 sm:px-12
+        py-3 sm:py-5
+        
         border
         border-[#2B2A28]
-        text-[11px]
+        /* Smaller font on mobile to ensure text fits */
+        text-[9px] sm:text-[11px]
         font-bold
         uppercase
-        tracking-[0.35em]
+        /* Slightly tighter tracking on mobile */
+        tracking-[0.2em] sm:tracking-[0.35em]
         transition-all
         duration-300
 
@@ -97,14 +90,17 @@ export default function AddToCart({ bookId }: { bookId: string }) {
         disabled:text-[#8B6F47]
         disabled:border-[#8B6F47]/30
         disabled:cursor-not-allowed
+        /* Added to handle text wrap elegantly */
+        whitespace-normal
+        leading-tight
       "
     >
       {exists
-        ? "Already in Collection"
+        ? "In Collection"
         : loading
         ? "Archiving…"
         : added
-        ? "Added to Collection"
+        ? "Added"
         : "Add to Collection"}
     </button>
   );
