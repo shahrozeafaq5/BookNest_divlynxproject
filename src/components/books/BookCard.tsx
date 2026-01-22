@@ -13,12 +13,12 @@ export default function BookCard({ book, index }: { book: any; index: number }) 
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.8, delay: index * 0.05, ease: [0.16, 1, 0.3, 1] }}
-      className="group"
+      className="group flex flex-col h-full"
     >
       <Link href={`/books/${bookId}`}>
         <div className="relative aspect-[3/4.5] overflow-hidden bg-[#EAE7E0] mb-6 border border-[#8B6F47]/10 shadow-sm transition-all duration-700 group-hover:shadow-[0_30px_60px_rgba(43,42,40,0.1)] group-hover:-translate-y-2">
           
-          {/* Subtle Spine Shadow to give a 3D book feel */}
+          {/* Subtle Spine Shadow */}
           <div className="absolute left-0 top-0 w-4 h-full bg-gradient-to-r from-black/10 to-transparent z-10" />
           
           {book.image ? (
@@ -40,19 +40,23 @@ export default function BookCard({ book, index }: { book: any; index: number }) 
         </div>
       </Link>
 
-      <div className="space-y-4 px-1 text-center sm:text-left">
-        <div>
-          <h3 className="font-serif italic text-lg leading-tight text-[#2B2A28] group-hover:text-[#8B6F47] transition-colors duration-300">
+      {/* Content Container - flex-grow ensures buttons align at the bottom of the row */}
+      <div className="flex flex-col flex-grow space-y-4 px-1">
+        <div className="text-center sm:text-left">
+          <h3 className="font-serif italic text-lg leading-tight text-[#2B2A28] group-hover:text-[#8B6F47] transition-colors duration-300 line-clamp-2 min-h-[3rem]">
             {book.title}
           </h3>
-          <p className="text-[10px] font-bold text-[#8B6F47] uppercase tracking-[0.25em] mt-1.5">
+          <p className="text-[10px] font-bold text-[#8B6F47] uppercase tracking-[0.25em] mt-1.5 truncate">
             {book.author}
           </p>
         </div>
         
-        <div className="flex items-center justify-between gap-4 pt-4 border-t border-[#8B6F47]/10">
-          <span className="font-serif italic text-base text-[#2B2A28]">${book.price}</span>
-          <div className="scale-75 origin-right">
+        {/* ACTION SECTION: Fixed to stack on mobile and row on tablet/desktop */}
+        <div className="mt-auto pt-4 border-t border-[#8B6F47]/10 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
+          <span className="font-serif italic text-base text-[#2B2A28]">
+            ${book.price}
+          </span>
+          <div className="w-full sm:w-auto flex justify-center sm:justify-end scale-90 sm:scale-75 origin-center sm:origin-right">
              <AddToCart bookId={bookId} />
           </div>
         </div>
